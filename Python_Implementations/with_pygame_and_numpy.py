@@ -19,7 +19,7 @@ class main(object):
 
 	screen = pygame.display.set_mode((w_dimentions))
 	pygame.display.set_caption("Physics_sims")
-	icon = pygame.image.load("python_implementations\window_icon.png")
+	icon = pygame.image.load("assets\window_icon.png")
 	pygame.display.set_icon(icon)
 
 	# Strength of the forces
