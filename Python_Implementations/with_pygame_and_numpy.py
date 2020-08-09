@@ -4,37 +4,32 @@ import math
 from random import randint
 
 
-## SETUP ##
-
-pygame.init()
-
-# Camera position for dragging particle positions
-camera_pos = np.array([0,0])
-
-# Size of window, and caption of it
-w_dimentions = [1280, 720] # Description
-
-screen = pygame.display.set_mode((w_dimentions))
-pygame.display.set_caption("Physics_sims")
-
-# Strength of the force of gravity
-GRAVITY = 0.0003
-
-
 class main(object):
 	""" This aplication's package""" 
+
+	## SETUP ##
+	pygame.init()
+
+	# Camera position for dragging particle positions
+	camera_pos = np.array([0,0])
+
+	# Size of window, and caption of it
+	w_dimentions = [1280, 720] # Description
+
+	screen = pygame.display.set_mode((w_dimentions))
+	pygame.display.set_caption("Physics_sims")
+
+	# Strength of the force of gravity
+	GRAVITY = 0.0003
+
 	def __init__(self):
-		
-		global camera_pos
-		# Tells the class to use the global "camera_pos" 
-		# instead of creating its own local variable
 
 		camera_drag = False
 
 		# Generation of particles
 		for n in range(30):
-			randompos = (randint(0,w_dimentions[0]),
-						randint(0,w_dimentions[1]))
+			randompos = (randint(0,self.w_dimentions[0]),
+						randint(0,self.w_dimentions[1]))
 
 			Particle.array.append(Particle(randompos))
 			# Append to the object array inside the object so it can
@@ -45,7 +40,7 @@ class main(object):
 		running = True
 		while running:
 
-			screen.fill((20,20,20)) # Fill the background
+			self.screen.fill((20,20,20)) # Fill the background
 
 			mouse_pos = np.array(pygame.mouse.get_pos())
 			# Check de mouse position and add it to an array
@@ -66,7 +61,7 @@ class main(object):
 
 			
 			if camera_drag: # Move the "camera_pos" acordingly
-				camera_pos += (mouse_pos - prev_mouse_pos)
+				self.camera_pos += (mouse_pos - prev_mouse_pos)
 			
 			prev_mouse_pos = mouse_pos
 			# Keep the last mouse position
@@ -117,7 +112,7 @@ class Particle(object):
 				force_by_axys = np.array(self.pos - p.pos)
 
 				# Gravity
-				strength_of_force = ((GRAVITY * self.mass * p.mass) / 
+				strength_of_force = ((main.GRAVITY * self.mass * p.mass) / 
 											(distance ** 2))
 				force_by_axys *= strength_of_force
 				total_newtons += force_by_axys
@@ -134,14 +129,14 @@ class Particle(object):
 	def show(self):
 		"""Makes a surface and calls screen.blit()"""
 		# Draw and blit to screen
-		relative_pos = self.pos + camera_pos
+		relative_pos = self.pos + main.camera_pos
 
 		surface = pygame.Surface(self.size)
 		center = (self.radius, self.radius)
 		pygame.draw.circle(surface, self.color, center, self.radius)
 
 
-		screen.blit(surface,list(map(int, relative_pos)))
+		main.screen.blit(surface,list(map(int, relative_pos)))
 		
 
 if __name__ == '__main__':
