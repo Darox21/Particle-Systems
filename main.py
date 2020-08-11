@@ -11,11 +11,11 @@ class main(object):
 	pygame.init()
 
 	# Camera position for dragging particle positions
-	camera_pos = np.array([0,0])
+	camera_pos = np.array([0,0], dtype=np.int32)
 	camera_scale = 1.0
 
 	# Size of window, and caption of it
-	w_dimentions = np.array([1280, 720]) # Description
+	w_dimentions = np.array([1280, 720], dtype=np.int16) # Description
 
 	screen = pygame.display.set_mode((w_dimentions))
 	pygame.display.set_caption("Physics_sims")
@@ -23,15 +23,15 @@ class main(object):
 	pygame.display.set_icon(icon)
 
 	# Strength of the forces
-	GRAVITY = 0.0005
-	ELECTROMAGNETISM = 80
+	GRAVITY = 0.00001
+	ELECTROMAGNETISM = 2000
 
 	def __init__(self):
 
 		camera_drag = False
 
 		# Generation of particles	
-		self.generate_particles(25)
+		self.generate_particles(50)
 	
 
 		## LOOP ##
@@ -40,7 +40,7 @@ class main(object):
 
 			self.screen.fill((20,20,20)) # Fill the background
 
-			mouse_pos = np.array(pygame.mouse.get_pos())
+			mouse_pos = np.array(pygame.mouse.get_pos(), dtype=np.int16)
 			# Check de mouse position and add it to an array
 
 			# Check events
@@ -49,7 +49,6 @@ class main(object):
 					running = False
 
 				if event.type == pygame.MOUSEBUTTONDOWN:
-					print("Pressed: Mouse " + str(event.button))
 					if event.button == 2: # if Middle click
 						camera_drag = True
 					
@@ -65,7 +64,7 @@ class main(object):
 				if event.type == pygame.MOUSEBUTTONUP:
 					if event.button == 2:
 						camera_drag = False
-						print(self.camera_pos)
+						print(f"New Camera Position: {list(map(int, self.camera_pos))}")
 
 			
 			if camera_drag: # Move the "camera_pos" acordingly
@@ -78,15 +77,26 @@ class main(object):
 			for p in Particle.array:
 				p.update_acceleration()
 			# For every particle in the array use its functions
+
 			for p in Particle.array:
 				p.update_pos()
 				p.show()
+
+			i = len(Particle.array) - 1
+			while i >= 0:
+				p = Particle.array[i]
+				# Check if it is out of bounds
+				if p.pos[0] < -9999 or p.pos[1] < -9999 or p.pos[0] > 9999 or p.pos[1] > 9999:
+					print("Particle Out of bounds")
+					del Particle.array[i]
+				i -= 1
+			del i
 
 
 			pygame.display.update()
 	
 
-	def generate_particles(self, num, mass=(100,30), charge="rand", vel=[0.0,0.0], area=((0,0), (1280, 720))):
+	def generate_particles(self, num, mass=(100,30), charge="rand", vel=[0.0,0.0], size=(5000, 5000), offset=(-2500,-2500)):
 		"""Generates Particles 
 
 			Parameters
@@ -102,12 +112,14 @@ class main(object):
 			  A signed int
 			vel: list
 			  velocity
-			area: tuple
-			  Two points in space delimiting a rectangle where particles will generate a position
+			size: tuple
+			  Size of the spawning area
+			offset: tuple
+			  Offset of the spawning area
 		"""
 		for n in range(num):
 			p_pos = np.random.rand(2)
-			p_pos = (p_pos * area[1]) + area[0]
+			p_pos = (p_pos * size) + offset
 
 			p_mass = np.random.normal(mass[0],mass[1])
 
@@ -133,17 +145,22 @@ class Particle(object):
 
 	def __init__(self, pos, mass=100, charge=1, vel=[0,0]):
 		# Physics related things
-		self.pos = np.array(list(map(float, pos)))
+		self.pos = np.array(list(map(float, pos)), dtype=np.float32)
 		# To explain this "list(map(float, pos))":
 		# First apply the float() function to every value in the pos[] array
 		# Then output it as a list, and finally make that into a np.array()
 		# This is equivalent [float(pos[0]),float(pos[1])] but feels prettier
 		self.mass = mass
 		self.charge = charge
-		self.vel = np.array(list(map(float, vel)))
+		self.vel = np.array(list(map(float, vel)), dtype=np.float32)
 
 		# Drawing related things
-		self.radius = int(math.sqrt(self.mass/ math.pi)) * 2
+		try:
+			self.radius = int(math.sqrt(self.mass / math.pi)) * 10
+		except e as exception:
+			print(f"Mass: {self.mass} \nMass divided by Pi: {self.mass / math.pi}")
+			Print(e)
+		
 		# This makes the area directly proportional to its mass
 		self.size = np.array((self.radius*2, self.radius*2))
 
@@ -183,6 +200,7 @@ class Particle(object):
 		"""Adds to position the velocity"""
 		self.pos += self.vel
 
+
 	def show(self):
 		"""Makes a surface and calls screen.blit()"""
 
@@ -199,7 +217,7 @@ class Particle(object):
 			pygame.draw.circle(surface, self.color, (1,1), 1)
 
 		main.screen.blit(surface,list(map(int, relative_pos)))
-		
+
 
 if __name__ == '__main__':
 	# if this file is excecuted as the main file, do this:
