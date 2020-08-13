@@ -23,7 +23,7 @@ class main(object):
 	pygame.display.set_icon(icon)
 
 	# Strength of the forces
-	GRAVITY = 0.00001
+	GRAVITY = 0.005
 	ELECTROMAGNETISM = 2000
 
 	def __init__(self):
@@ -54,11 +54,11 @@ class main(object):
 					
 					if event.button == 4:
 						main.camera_scale *= (1/0.9)
-						print(f"Scale: {self.camera_scale}")
+						print(f"Scale: {round(self.camera_scale, 4)}")
 						main.camera_pos = main.camera_pos + ((mouse_pos - (mouse_pos * 1/0.9)) / self.camera_scale)
 					if event.button == 5:
 						main.camera_scale *= 0.9
-						print(f"Scale: {self.camera_scale}")
+						print(f"Scale: {round(self.camera_scale, 4)}")
 						main.camera_pos = main.camera_pos + ((mouse_pos - (mouse_pos * 0.9)) / self.camera_scale)
 				
 				if event.type == pygame.MOUSEBUTTONUP:
@@ -96,7 +96,8 @@ class main(object):
 			pygame.display.update()
 	
 
-	def generate_particles(self, num, mass=(100,30), charge="rand", vel=[0.0,0.0], size=(5000, 5000), offset=(-2500,-2500)):
+	def generate_particles(self, num, mass=(100,30), charge="rand", vel=[0.0,0.0], 
+						   size=(5000, 5000), offset=(-2500,-2500)):
 		"""Generates Particles 
 
 			Parameters
@@ -136,7 +137,6 @@ class main(object):
 			# be accesed from methods inside the object
 
 
-
 class Particle(object):
 	"""The Particle object handles the particle related methods
 	"""
@@ -146,10 +146,8 @@ class Particle(object):
 	def __init__(self, pos, mass=100, charge=1, vel=[0,0]):
 		# Physics related things
 		self.pos = np.array(list(map(float, pos)), dtype=np.float32)
-		# To explain this "list(map(float, pos))":
-		# First apply the float() function to every value in the pos[] array
-		# Then output it as a list, and finally make that into a np.array()
-		# This is equivalent [float(pos[0]),float(pos[1])] but feels prettier
+		# "list(map(float, pos))": is equivalent [float(pos[0]),float(pos[1])] 
+		# but feels prettier
 		self.mass = mass
 		self.charge = charge
 		self.vel = np.array(list(map(float, vel)), dtype=np.float32)
@@ -158,6 +156,7 @@ class Particle(object):
 		try:
 			self.radius = int(math.sqrt(self.mass / math.pi)) * 10
 		except e as exception:
+			# I have a bug related to this, I still don't find out why
 			print(f"Mass: {self.mass} \nMass divided by Pi: {self.mass / math.pi}")
 			Print(e)
 		
@@ -187,7 +186,8 @@ class Particle(object):
 
 				#Electromagnetism
 				if self.charge != 0 and p.charge != 0:
-					strength_of_force = (-(main.ELECTROMAGNETISM * self.charge * p.charge) / dist_sqrd)
+					strength_of_force = (-(main.ELECTROMAGNETISM * self.charge * p.charge) 
+										/ dist_sqrd)
 					added_vector = force_by_axys * strength_of_force
 					total_newtons += added_vector
 			# Make a vector adding every force applied by every other particle
@@ -213,6 +213,7 @@ class Particle(object):
 			center = (relative_radius, relative_radius)
 			pygame.draw.circle(surface, self.color, center, relative_radius)
 		else:
+			# Anything below a radius of 1 will will be drawn as a radius of 1
 			surface = pygame.Surface((2,2))
 			pygame.draw.circle(surface, self.color, (1,1), 1)
 
